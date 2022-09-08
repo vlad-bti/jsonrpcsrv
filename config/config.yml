@@ -1,0 +1,11 @@
+app:
+  name: 'jsonrpcsrv'
+  version: '1.0.0'
+
+jsonrpc:
+  port: ':8888'
+  route: '/mascot/seamless'
+
+logger:
+  log_level: 'debug'
+  rollbar_env: 'jsonrpcsrv'
