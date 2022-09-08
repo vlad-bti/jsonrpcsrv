@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/vlad-bti/jsonrpcsrv/internal/domain/entity"
+	"github.com/vlad-bti/jsonrpcsrv/pkg/logger"
 )
 
 type BalanceService interface {
@@ -30,13 +31,15 @@ type gameUsecase struct {
 	balanceService     BalanceService
 	playerService      PlayerService
 	transactionService TransactionService
+	log                *logger.Logger
 }
 
-func NewGameUsecase(balanceService BalanceService, playerService PlayerService, transactionService TransactionService) *gameUsecase {
+func NewGameUsecase(log *logger.Logger, balanceService BalanceService, playerService PlayerService, transactionService TransactionService) *gameUsecase {
 	return &gameUsecase{
 		balanceService:     balanceService,
 		playerService:      playerService,
 		transactionService: transactionService,
+		log:                log,
 	}
 }
 
@@ -44,6 +47,13 @@ func (g *gameUsecase) GetBalance(ctx context.Context, dto GetBalanceDTO) (*entit
 	g.transactionService.Begin(ctx)
 	balance, err := g.balanceService.GetBalance(ctx, dto.PlayerName, dto.Currency)
 	g.transactionService.Rollback(ctx)
+	if err != nil {
+		g.log.Error("GetBalance - GetBalance: %v; PlayerName=%v, Currency=%v",
+			err,
+			dto.PlayerName,
+			dto.Currency,
+		)
+	}
 	return balance, err
 }
 
@@ -52,6 +62,10 @@ func (g *gameUsecase) WithdrawAndDeposit(ctx context.Context, dto WithdrawAndDep
 	transaction, err := g.transactionService.GetTransaction(ctx, dto.TransactionRef)
 	if err != nil {
 		g.transactionService.Rollback(ctx)
+		g.log.Error("WithdrawAndDeposit - GetTransaction: %v; TransactionRef=%v",
+			err,
+			dto.TransactionRef,
+		)
 		return err
 	}
 	if transaction != nil {
@@ -66,6 +80,13 @@ func (g *gameUsecase) WithdrawAndDeposit(ctx context.Context, dto WithdrawAndDep
 		err = g.balanceService.Withdraw(ctx, dto.PlayerName, dto.Currency, dto.Withdraw)
 		if err != nil {
 			g.transactionService.Rollback(ctx)
+			g.log.Error("WithdrawAndDeposit - Withdraw: %v; TransactionRef=%v, PlayerName=%v, Currency=%v, Withdraw=%v",
+				err,
+				dto.TransactionRef,
+				dto.PlayerName,
+				dto.Currency,
+				dto.Withdraw,
+			)
 			return err
 		}
 	}
@@ -73,6 +94,13 @@ func (g *gameUsecase) WithdrawAndDeposit(ctx context.Context, dto WithdrawAndDep
 		err = g.balanceService.Deposit(ctx, dto.PlayerName, dto.Currency, dto.Deposit)
 		if err != nil {
 			g.transactionService.Rollback(ctx)
+			g.log.Error("WithdrawAndDeposit - Deposit: %v; TransactionRef=%v, PlayerName=%v, Currency=%v, Deposit=%v",
+				err,
+				dto.TransactionRef,
+				dto.PlayerName,
+				dto.Currency,
+				dto.Deposit,
+			)
 			return err
 		}
 	}
@@ -88,6 +116,10 @@ func (g *gameUsecase) WithdrawAndDeposit(ctx context.Context, dto WithdrawAndDep
 	err = g.transactionService.AddTransaction(ctx, trx)
 	if err != nil {
 		g.transactionService.Rollback(ctx)
+		g.log.Info("WithdrawAndDeposit - AddTransaction: %v; TransactionRef=%v",
+			err,
+			dto.TransactionRef,
+		)
 		return err
 	}
 	g.transactionService.Commit(ctx)
@@ -99,6 +131,10 @@ func (g *gameUsecase) RollbackTransaction(ctx context.Context, dto RollbackTrans
 	transaction, err := g.transactionService.GetTransaction(ctx, dto.TransactionRef)
 	if err != nil {
 		g.transactionService.Rollback(ctx)
+		g.log.Error("RollbackTransaction - GetTransaction: %v; TransactionRef=%v",
+			err,
+			dto.TransactionRef,
+		)
 		return err
 	}
 	if transaction != nil {
@@ -110,6 +146,13 @@ func (g *gameUsecase) RollbackTransaction(ctx context.Context, dto RollbackTrans
 			err = g.balanceService.Withdraw(ctx, transaction.PlayerName, transaction.Currency, transaction.Deposit)
 			if err != nil {
 				g.transactionService.Rollback(ctx)
+				g.log.Error("RollbackTransaction - Withdraw: %v; TransactionRef=%v, PlayerName=%v, Currency=%v, Withdraw=%v",
+					err,
+					dto.TransactionRef,
+					transaction.PlayerName,
+					transaction.Currency,
+					transaction.Deposit,
+				)
 				return err
 			}
 		}
@@ -117,6 +160,13 @@ func (g *gameUsecase) RollbackTransaction(ctx context.Context, dto RollbackTrans
 			err = g.balanceService.Deposit(ctx, transaction.PlayerName, transaction.Currency, transaction.Withdraw)
 			if err != nil {
 				g.transactionService.Rollback(ctx)
+				g.log.Error("RollbackTransaction - Deposit: %v; TransactionRef=%v, PlayerName=%v, Currency=%v, Deposit=%v",
+					err,
+					dto.TransactionRef,
+					transaction.PlayerName,
+					transaction.Currency,
+					transaction.Withdraw,
+				)
 				return err
 			}
 		}
@@ -124,6 +174,12 @@ func (g *gameUsecase) RollbackTransaction(ctx context.Context, dto RollbackTrans
 			err = g.playerService.ChangeFreerounds(ctx, transaction.PlayerName, transaction.ChargeFreerounds)
 			if err != nil {
 				g.transactionService.Rollback(ctx)
+				g.log.Error("RollbackTransaction - ChangeFreerounds: %v; TransactionRef=%v, PlayerName=%v, ChargeFreerounds=%v",
+					err,
+					dto.TransactionRef,
+					transaction.PlayerName,
+					transaction.ChargeFreerounds,
+				)
 				return err
 			}
 		}
@@ -136,6 +192,10 @@ func (g *gameUsecase) RollbackTransaction(ctx context.Context, dto RollbackTrans
 	err = g.transactionService.RevertTransaction(ctx, transaction)
 	if err != nil {
 		g.transactionService.Rollback(ctx)
+		g.log.Error("RollbackTransaction - RevertTransaction: %v; TransactionRef=%v",
+			err,
+			dto.TransactionRef,
+		)
 		return err
 	}
 	g.transactionService.Commit(ctx)

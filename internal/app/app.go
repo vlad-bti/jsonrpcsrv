@@ -3,7 +3,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"sync"
@@ -20,7 +19,7 @@ import (
 
 // Run creates objects via constructors.
 func Run(cfg *config.Config) {
-	l := logger.New(cfg.Log.Level)
+	log := logger.New(cfg.Log.Level)
 
 	// Repository
 	fakeDB := fakedb.NewFakeDB()
@@ -29,12 +28,12 @@ func Run(cfg *config.Config) {
 	transactionStorage := fakedb.NewTransactionStorage()
 
 	// Service
-	balanceService := service.NewBalanceService(balanceStorage)
-	playerService := service.NewPlayerService(playerStorage)
-	transactionService := service.NewTransactionService(transactionStorage, fakeDB)
+	balanceService := service.NewBalanceService(log, balanceStorage)
+	playerService := service.NewPlayerService(log, playerStorage)
+	transactionService := service.NewTransactionService(log, transactionStorage, fakeDB)
 
 	// Use case
-	gameUsecase := usecase.NewGameUsecase(balanceService, playerService, transactionService)
+	gameUsecase := usecase.NewGameUsecase(log, balanceService, playerService, transactionService)
 
 	wg := sync.WaitGroup{}
 
@@ -55,13 +54,13 @@ func Run(cfg *config.Config) {
 
 	select {
 	case s := <-interrupt:
-		l.Info("app - Run - signal: " + s.String())
+		log.Info("app - Run - signal: %v", s.String())
 	}
 
 	// Shutdown
 	err := jsonRpcServer.Shutdown(context.TODO())
 	if err != nil {
-		l.Error(fmt.Errorf("app - Run - jsonRpcServer.Shutdown: %w", err))
+		log.Error("app - Run - jsonRpcServer.Shutdown: %v", err)
 	}
 
 	wg.Wait()

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/vlad-bti/jsonrpcsrv/internal/domain/entity"
+	"github.com/vlad-bti/jsonrpcsrv/pkg/logger"
 )
 
 type TransactionStorage interface {
@@ -20,10 +21,11 @@ type FakeDB interface {
 type transactionService struct {
 	storage TransactionStorage
 	fakeDB  FakeDB
+	log     *logger.Logger
 }
 
-func NewTransactionService(storage TransactionStorage, fakeDB FakeDB) *transactionService {
-	return &transactionService{storage: storage, fakeDB: fakeDB}
+func NewTransactionService(log *logger.Logger, storage TransactionStorage, fakeDB FakeDB) *transactionService {
+	return &transactionService{storage: storage, fakeDB: fakeDB, log: log}
 }
 
 func (s *transactionService) GetTransaction(ctx context.Context, transactionRef string) (*entity.Transaction, error) {
@@ -37,6 +39,7 @@ func (s *transactionService) AddTransaction(ctx context.Context, trx *entity.Tra
 func (s *transactionService) RevertTransaction(ctx context.Context, trx *entity.Transaction) error {
 	transaction, err := s.storage.Get(ctx, trx.TransactionRef)
 	if err != nil {
+		s.log.Error("RevertTransaction - Get: %v; TransactionRef=%v", err, trx.TransactionRef)
 		return err
 	}
 	if transaction == nil {

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/vlad-bti/jsonrpcsrv/internal/domain/entity"
+	"github.com/vlad-bti/jsonrpcsrv/pkg/logger"
 )
 
 type PlayerStorage interface {
@@ -13,10 +14,11 @@ type PlayerStorage interface {
 
 type playerService struct {
 	storage PlayerStorage
+	log     *logger.Logger
 }
 
-func NewPlayerService(storage PlayerStorage) *playerService {
-	return &playerService{storage: storage}
+func NewPlayerService(log *logger.Logger, storage PlayerStorage) *playerService {
+	return &playerService{storage: storage, log: log}
 }
 
 func (s *playerService) GetPlayer(ctx context.Context, playerName string) (*entity.Player, error) {
@@ -26,6 +28,7 @@ func (s *playerService) GetPlayer(ctx context.Context, playerName string) (*enti
 func (s *playerService) ChangeFreerounds(ctx context.Context, playerName string, value int) error {
 	player, err := s.storage.Get(ctx, playerName)
 	if err != nil {
+		s.log.Error("ChangeFreerounds - Get: %v; playerName=%v", err, playerName)
 		return err
 	}
 	if player == nil && value < 0 || player != nil && player.Freerounds+value < 0 {
