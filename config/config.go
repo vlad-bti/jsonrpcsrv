@@ -1,9 +1,9 @@
 package config
 
 import (
-	"os"
+	"fmt"
 
-	"gopkg.in/yaml.v3"
+	"github.com/ilyakaznacheev/cleanenv"
 )
 
 type (
@@ -12,6 +12,7 @@ type (
 		App     `yaml:"app"`
 		JsonRpc `yaml:"jsonrpc"`
 		Log     `yaml:"logger"`
+		PG      `yaml:"postgres"`
 	}
 
 	// App -.
@@ -30,6 +31,12 @@ type (
 	Log struct {
 		Level string `env-required:"true" yaml:"log_level" env:"LOG_LEVEL"`
 	}
+
+	// PG -.
+	PG struct {
+		PoolMax int    `env-required:"true" yaml:"pool_max" env:"PG_POOL_MAX"`
+		URL     string `env-required:"true"                 env:"PG_URL"`
+	}
 )
 
 // NewConfig returns app config.
@@ -37,18 +44,13 @@ func NewConfig() (*Config, error) {
 	// Create config structure
 	cfg := &Config{}
 
-	// Open config file
-	file, err := os.Open("./config/config.yml")
+	err := cleanenv.ReadConfig("./config/config.yml", cfg)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("config error: %w", err)
 	}
-	defer file.Close()
 
-	// Init new YAML decode
-	d := yaml.NewDecoder(file)
-
-	// Start YAML decoding from file
-	if err := d.Decode(&cfg); err != nil {
+	err = cleanenv.ReadEnv(cfg)
+	if err != nil {
 		return nil, err
 	}
 

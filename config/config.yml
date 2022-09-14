@@ -9,3 +9,6 @@ jsonrpc:
 logger:
   log_level: 'debug'
   rollbar_env: 'jsonrpcsrv'
+
+postgres:
+  pool_max: 2

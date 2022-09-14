@@ -12,20 +12,13 @@ type TransactionStorage interface {
 	Get(ctx context.Context, transactionRef string) (*entity.Transaction, error)
 }
 
-type FakeDB interface {
-	Begin(ctx context.Context)
-	Commit(ctx context.Context)
-	Rollback(ctx context.Context)
-}
-
 type transactionService struct {
 	storage TransactionStorage
-	fakeDB  FakeDB
 	log     *logger.Logger
 }
 
-func NewTransactionService(log *logger.Logger, storage TransactionStorage, fakeDB FakeDB) *transactionService {
-	return &transactionService{storage: storage, fakeDB: fakeDB, log: log}
+func NewTransactionService(log *logger.Logger, storage TransactionStorage) *transactionService {
+	return &transactionService{storage: storage, log: log}
 }
 
 func (s *transactionService) GetTransaction(ctx context.Context, transactionRef string) (*entity.Transaction, error) {
@@ -51,16 +44,4 @@ func (s *transactionService) RevertTransaction(ctx context.Context, trx *entity.
 		return s.storage.Save(ctx, transaction)
 	}
 	return nil
-}
-
-func (s *transactionService) Begin(ctx context.Context) {
-	s.fakeDB.Begin(ctx)
-}
-
-func (s *transactionService) Commit(ctx context.Context) {
-	s.fakeDB.Commit(ctx)
-}
-
-func (s *transactionService) Rollback(ctx context.Context) {
-	s.fakeDB.Rollback(ctx)
 }

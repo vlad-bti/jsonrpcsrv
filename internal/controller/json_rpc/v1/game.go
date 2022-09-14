@@ -87,7 +87,7 @@ func (g *gameHandler) WithdrawAndDeposit(ctx context.Context, params json.RawMes
 		ChargeFreerounds: p.ChargeFreerounds,
 	}
 	err := g.gameUsecase.WithdrawAndDeposit(ctx, usecaseDTO)
-	if err != nil {
+	if err != nil && err != entity.NoError {
 		if err == entity.ErrNotEnoughMoney {
 			return nil, &jrpc2.ErrorObject{
 				Code:    ErrNotEnoughMoneyCode,
@@ -128,7 +128,7 @@ func (g *gameHandler) RollbackTransaction(ctx context.Context, params json.RawMe
 		TransactionRef: p.TransactionRef,
 	}
 	err := g.gameUsecase.RollbackTransaction(ctx, usecaseDTO)
-	if err != nil {
+	if err != nil && err != entity.NoError {
 		return nil, &jrpc2.ErrorObject{
 			Code:    ErrUnknown,
 			Message: jrpc2.ErrorMsg(err.Error()),
