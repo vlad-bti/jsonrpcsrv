@@ -32,7 +32,7 @@ func (s *transactionService) AddTransaction(ctx context.Context, trx *entity.Tra
 func (s *transactionService) RevertTransaction(ctx context.Context, trx *entity.Transaction) error {
 	transaction, err := s.storage.Get(ctx, trx.TransactionRef)
 	if err != nil {
-		s.log.Error("RevertTransaction - Get: %v; TransactionRef=%v", err, trx.TransactionRef)
+		s.log.Error("TransactionService - RevertTransaction - s.storage.sGet: %v; TransactionRef=%v", err, trx.TransactionRef)
 		return err
 	}
 	if transaction == nil {

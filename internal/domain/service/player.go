@@ -28,7 +28,7 @@ func (s *playerService) GetPlayer(ctx context.Context, playerName string) (*enti
 func (s *playerService) ChangeFreerounds(ctx context.Context, playerName string, value int) error {
 	player, err := s.storage.Get(ctx, playerName)
 	if err != nil {
-		s.log.Error("ChangeFreerounds - Get: %v; playerName=%v", err, playerName)
+		s.log.Error("PlayerService - ChangeFreerounds - s.storage.Get: %v; playerName=%v", err, playerName)
 		return err
 	}
 	if player == nil && value < 0 || player != nil && player.Freerounds+value < 0 {

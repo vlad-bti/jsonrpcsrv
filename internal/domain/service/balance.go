@@ -28,7 +28,7 @@ func (s *balanceService) GetBalance(ctx context.Context, playerName string, curr
 func (s *balanceService) Deposit(ctx context.Context, playerName string, currency string, value int) error {
 	balance, err := s.storage.Get(ctx, playerName, currency)
 	if err != nil {
-		s.log.Error("Deposit - Get: %v; playerName=%v, currency=%v",
+		s.log.Error("BalanceService - Deposit - s.storage.Get: %v; playerName=%v, currency=%v",
 			err,
 			playerName,
 			currency,
@@ -46,7 +46,7 @@ func (s *balanceService) Deposit(ctx context.Context, playerName string, currenc
 	}
 	err = s.storage.Save(ctx, balance)
 	if err != nil {
-		s.log.Error("Deposit - Save: %v; playerName=%v, currency=%v, balance=%v",
+		s.log.Error("BalanceService - Deposit - s.storage.Save: %v; playerName=%v, currency=%v, balance=%v",
 			err,
 			playerName,
 			currency,
@@ -60,7 +60,7 @@ func (s *balanceService) Deposit(ctx context.Context, playerName string, currenc
 func (s *balanceService) Withdraw(ctx context.Context, playerName string, currency string, value int) error {
 	balance, err := s.storage.Get(ctx, playerName, currency)
 	if err != nil {
-		s.log.Error("Withdraw - Get: %v; playerName=%v, currency=%v",
+		s.log.Error("BalanceService - Withdraw - s.storage.Get: %v; playerName=%v, currency=%v",
 			err,
 			playerName,
 			currency,

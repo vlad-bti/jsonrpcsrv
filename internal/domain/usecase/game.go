@@ -55,7 +55,7 @@ func NewGameUsecase(log *logger.Logger, balanceService BalanceService, playerSer
 func (r *gameUsecase) GetBalance(ctx context.Context, dto GetBalanceDTO) (*entity.Balance, error) {
 	balance, err := r.balanceService.GetBalance(ctx, dto.PlayerName, dto.Currency)
 	if err != nil {
-		r.log.Error("GetBalance - GetBalance: %v; PlayerName=%v, Currency=%v",
+		r.log.Error("GameUsecase - GetBalance - r.balanceService.GetBalance: %v; PlayerName=%v, Currency=%v",
 			err,
 			dto.PlayerName,
 			dto.Currency,
@@ -68,7 +68,7 @@ func (r *gameUsecase) WithdrawAndDeposit(ctx context.Context, dto WithdrawAndDep
 	return r.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
 		transaction, err := r.transactionService.GetTransaction(txCtx, dto.TransactionRef)
 		if err != nil {
-			r.log.Error("WithdrawAndDeposit - GetTransaction: %v; TransactionRef=%v",
+			r.log.Error("GameUsecase - WithdrawAndDeposit - r.transactor.GetTransaction: %v; TransactionRef=%v",
 				err,
 				dto.TransactionRef,
 			)
@@ -83,7 +83,7 @@ func (r *gameUsecase) WithdrawAndDeposit(ctx context.Context, dto WithdrawAndDep
 		if dto.Withdraw > 0 {
 			err = r.balanceService.Withdraw(txCtx, dto.PlayerName, dto.Currency, dto.Withdraw)
 			if err != nil {
-				r.log.Error("WithdrawAndDeposit - Withdraw: %v; TransactionRef=%v, PlayerName=%v, Currency=%v, Withdraw=%v",
+				r.log.Error("GameUsecase - WithdrawAndDeposit - r.balanceService.Withdraw: %v; TransactionRef=%v, PlayerName=%v, Currency=%v, Withdraw=%v",
 					err,
 					dto.TransactionRef,
 					dto.PlayerName,
@@ -96,7 +96,7 @@ func (r *gameUsecase) WithdrawAndDeposit(ctx context.Context, dto WithdrawAndDep
 		if dto.Deposit > 0 {
 			err = r.balanceService.Deposit(txCtx, dto.PlayerName, dto.Currency, dto.Deposit)
 			if err != nil {
-				r.log.Error("WithdrawAndDeposit - Deposit: %v; TransactionRef=%v, PlayerName=%v, Currency=%v, Deposit=%v",
+				r.log.Error("GameUsecase - WithdrawAndDeposit - r.balanceService.Deposit: %v; TransactionRef=%v, PlayerName=%v, Currency=%v, Deposit=%v",
 					err,
 					dto.TransactionRef,
 					dto.PlayerName,
@@ -117,7 +117,7 @@ func (r *gameUsecase) WithdrawAndDeposit(ctx context.Context, dto WithdrawAndDep
 		}
 		err = r.transactionService.AddTransaction(ctx, trx)
 		if err != nil {
-			r.log.Info("WithdrawAndDeposit - AddTransaction: %v; TransactionRef=%v",
+			r.log.Info("GameUsecase - WithdrawAndDeposit - r.transactionService.AddTransaction: %v; TransactionRef=%v",
 				err,
 				dto.TransactionRef,
 			)
@@ -131,7 +131,7 @@ func (r *gameUsecase) RollbackTransaction(ctx context.Context, dto RollbackTrans
 	return r.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
 		transaction, err := r.transactionService.GetTransaction(txCtx, dto.TransactionRef)
 		if err != nil {
-			r.log.Error("RollbackTransaction - GetTransaction: %v; TransactionRef=%v",
+			r.log.Error("GameUsecase - RollbackTransaction - r.transactionService.GetTransaction: %v; TransactionRef=%v",
 				err,
 				dto.TransactionRef,
 			)
@@ -144,7 +144,7 @@ func (r *gameUsecase) RollbackTransaction(ctx context.Context, dto RollbackTrans
 			if transaction.Deposit > 0 {
 				err = r.balanceService.Withdraw(txCtx, transaction.PlayerName, transaction.Currency, transaction.Deposit)
 				if err != nil {
-					r.log.Error("RollbackTransaction - Withdraw: %v; TransactionRef=%v, PlayerName=%v, Currency=%v, Withdraw=%v",
+					r.log.Error("GameUsecase - RollbackTransaction - r.balanceService.Withdraw: %v; TransactionRef=%v, PlayerName=%v, Currency=%v, Withdraw=%v",
 						err,
 						dto.TransactionRef,
 						transaction.PlayerName,
@@ -157,7 +157,7 @@ func (r *gameUsecase) RollbackTransaction(ctx context.Context, dto RollbackTrans
 			if transaction.Withdraw > 0 {
 				err = r.balanceService.Deposit(txCtx, transaction.PlayerName, transaction.Currency, transaction.Withdraw)
 				if err != nil {
-					r.log.Error("RollbackTransaction - Deposit: %v; TransactionRef=%v, PlayerName=%v, Currency=%v, Deposit=%v",
+					r.log.Error("GameUsecase - RollbackTransaction - r.balanceService.Deposit: %v; TransactionRef=%v, PlayerName=%v, Currency=%v, Deposit=%v",
 						err,
 						dto.TransactionRef,
 						transaction.PlayerName,
@@ -170,7 +170,7 @@ func (r *gameUsecase) RollbackTransaction(ctx context.Context, dto RollbackTrans
 			if transaction.ChargeFreerounds > 0 {
 				err = r.playerService.ChangeFreerounds(txCtx, transaction.PlayerName, transaction.ChargeFreerounds)
 				if err != nil {
-					r.log.Error("RollbackTransaction - ChangeFreerounds: %v; TransactionRef=%v, PlayerName=%v, ChargeFreerounds=%v",
+					r.log.Error("GameUsecase - RollbackTransaction - r.playerService.ChangeFreerounds: %v; TransactionRef=%v, PlayerName=%v, ChargeFreerounds=%v",
 						err,
 						dto.TransactionRef,
 						transaction.PlayerName,
@@ -186,7 +186,7 @@ func (r *gameUsecase) RollbackTransaction(ctx context.Context, dto RollbackTrans
 		}
 		err = r.transactionService.RevertTransaction(txCtx, transaction)
 		if err != nil {
-			r.log.Error("RollbackTransaction - RevertTransaction: %v; TransactionRef=%v",
+			r.log.Error("GameUsecase - RollbackTransaction - r.transactionService.RevertTransaction: %v; TransactionRef=%v",
 				err,
 				dto.TransactionRef,
 			)
