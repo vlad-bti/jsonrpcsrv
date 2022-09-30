@@ -24,7 +24,7 @@ func (r *balanceStorage) Save(ctx context.Context, balance *entity.Balance) erro
 		Insert("balance").
 		Columns("player_name, currency, balance").
 		Values(balance.PlayerName, balance.Currency, balance.Balance).
-		Suffix("ON CONFLICT (player_name, currency) DO UPDATE SET balance = ?", balance.Balance).
+		Suffix("ON CONFLICT (player_name, currency) DO UPDATE SET balance = balance + ?", balance.Balance).
 		ToSql()
 	if err != nil {
 		return fmt.Errorf("BalanceStorage - Save - r.Builder: %w", err)

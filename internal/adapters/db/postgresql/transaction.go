@@ -31,12 +31,7 @@ func (r *transactionStorage) Save(ctx context.Context, trx *entity.Transaction) 
 			trx.TransactionRef,
 			trx.ChargeFreerounds,
 			trx.Status).
-		Suffix("ON CONFLICT (transaction_ref) DO UPDATE SET player_name = ?, withdraw = ?, deposit = ?, currency = ?, charge_free_rounds = ?, status = ?",
-			trx.PlayerName,
-			trx.Withdraw,
-			trx.Deposit,
-			trx.Currency,
-			trx.ChargeFreerounds,
+		Suffix("ON CONFLICT (transaction_ref) DO UPDATE SET status = ?",
 			trx.Status).
 		ToSql()
 	if err != nil {

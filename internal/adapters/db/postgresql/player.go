@@ -24,7 +24,7 @@ func (r *playerStorage) Save(ctx context.Context, player *entity.Player) error {
 		Insert("player").
 		Columns("player_name, free_rounds").
 		Values(player.PlayerName, player.Freerounds).
-		Suffix("ON CONFLICT (player_name) DO UPDATE SET free_rounds = ?", player.Freerounds).
+		Suffix("ON CONFLICT (player_name) DO UPDATE SET free_rounds = free_rounds + ?", player.Freerounds).
 		ToSql()
 	if err != nil {
 		return fmt.Errorf("PlayerStorage - Save - r.Builder: %w", err)
